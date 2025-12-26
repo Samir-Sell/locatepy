@@ -5,11 +5,10 @@ from shapely.geometry import shape, Polygon, MultiPolygon
 from shapely.wkb import dumps as wkb_dumps
 from shapely import STRtree
 from shapely.prepared import prep
+import zlib
 
 
-
-
-SQL_LITE_DATA_PATH = r".\pylocatator\data\data.db"
+SQL_LITE_DATA_PATH = r".\locatepy\data\compressed.db"
 SCHEMA_SQL_LITE_DATA_PATH = r".\dataprocessing\schema.sql"
 COUNTRIES_GEOJSON_PATH = r"C:\Users\ssellars\Downloads\geoBoundariesCGAZ_ADM0.geojson"
 STATES_GEOJSON_PATH = r"C:\Users\ssellars\Downloads\geoBoundariesCGAZ_ADM1.geojson"
@@ -38,26 +37,15 @@ def ingest_countries(con: sqlite3.Connection, geojson_path: str):
     cur = con.cursor()
     for feature in data["features"]:
         props = feature.get("properties", {})
-        geom = shape(feature["geometry"])
-        minx, miny, maxx, maxy = geom.bounds
 
         name = props.get("shapeName")
         code = props.get("shapeGroup")
-        srid = 4326  # assuming WGS84
 
         # Insert into countries table
         cur.execute("""
-            INSERT INTO countries (name, code, srid, geom_wkb, minx, miny, maxx, maxy)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (name, code, srid, sqlite3.Binary(wkb_dumps(ob=geom, srid=4326)), minx, miny, maxx, maxy))
-
-        # Insert into R-tree
-        country_id = cur.lastrowid
-        cur.execute("""
-            INSERT INTO countries_rtree (id, minx, maxx, miny, maxy)
-            VALUES (?, ?, ?, ?, ?)
-        """, (country_id, minx, maxx, miny, maxy))
-        
+            INSERT INTO countries (name, code)
+            VALUES (?, ?)
+        """, (name, code))
         con.commit()
 
 
@@ -68,30 +56,15 @@ def ingest_states(con: sqlite3.Connection, geojson_path: str):
     cur = con.cursor()
     for feature in data["features"]:
         props = feature.get("properties", {}) or {}
-        geom = shape(feature["geometry"])  # Polygon or MultiPolygon
-
-        minx, miny, maxx, maxy = geom.bounds
 
         name = props.get("shapeName")
         code = props.get("shapeID")
-        country_code: str = props.get("shapeGroup") # type: ignore
-
-        country_id = lookup_country_id_by_code(con, country_code)
 
         # Insert into states
         cur.execute("""
-            INSERT INTO states (country_id, code, name, srid, geom_wkb, minx, miny, maxx, maxy)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (country_id, code, name, 4326, sqlite3.Binary(wkb_dumps(ob=geom, srid=4326)),
-              float(minx), float(miny), float(maxx), float(maxy)))
-
-        state_id = cur.lastrowid
-
-        # Insert into states_rtree
-        cur.execute("""
-            INSERT INTO states_rtree (id, minx, maxx, miny, maxy)
-            VALUES (?, ?, ?, ?, ?)
-        """, (state_id, float(minx), float(maxx), float(miny), float(maxy)))
+            INSERT INTO states (code, name)
+            VALUES (?, ?)
+        """, (code, name))
 
     con.commit()
 
@@ -165,21 +138,14 @@ def ingest_municipalities(con, state_geojson_path: str, municipal_geojson_path:s
             state_id = lookup_table[found_state_geo] 
             country_id = lookup_country_id_by_code(con, country_code)
 
-            # if state_id is None:
-            #     missing_state += 1
-            # if country_id is None:
-            #     missing_country += 1
-
             if name is None:
                 name = "UNKNOWN NAME"
 
             # Insert into municipalities
             cur.execute("""
-                INSERT INTO municipalities (state_id, country_id, code, name, srid, geom_wkb, minx, miny, maxx, maxy)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (state_id, country_id, code, name, 4326, sqlite3.Binary(wkb_dumps(geom)),
-                    float(minx), float(miny), float(maxx), float(maxy)))
-
+                INSERT INTO municipalities (state_id, country_id, code, name, geom_wkb)
+                VALUES (?, ?, ?, ?, ?)
+            """, (state_id, country_id, code, name, sqlite3.Binary(zlib.compress(wkb_dumps(geom)))))
             muni_id = cur.lastrowid
 
             # Insert bbox into R-tree
@@ -197,14 +163,6 @@ def ingest_municipalities(con, state_geojson_path: str, municipal_geojson_path:s
 
 
     con.commit()
-
-
-
-
-# def ingest_municipalities(con: sqlite3.Connection, geojson_path: str):
-
-
-
 
 con = connect_to_sql_lite_db(SQL_LITE_DATA_PATH)
 run_schema(con, SCHEMA_SQL_LITE_DATA_PATH)

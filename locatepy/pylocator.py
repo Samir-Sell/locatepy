@@ -1,4 +1,5 @@
 
+from zlib import decompress
 from shapely.geometry import Point
 from shapely.wkb import loads as wkb_loads
 import sqlite3
@@ -15,13 +16,13 @@ def find_admin(con: sqlite3.Connection, lat: float, lon: float, pt: Point):
     """
     rows = con.execute(sql, (lon, lon, lat, lat)).fetchall()
     for row in rows:
-        geom = wkb_loads(row[1])
+        geom = wkb_loads(decompress(row[1]))
         if geom.covers(pt):
             return {"municipal_name": row[0], "district_name": row[2], "country_name": row[3]}
     return None
 
 def geocode_point(lat: float, lon: float):
-    con: sqlite3.Connection = sqlite3.connect(r"pylocatator\data\data.db")
+    con: sqlite3.Connection = sqlite3.connect(r"locatepy\data\compressed.db")
     pt = Point(lon, lat)
     location = find_admin(con, lat, lon, pt)
     if location is None:
@@ -29,4 +30,4 @@ def geocode_point(lat: float, lon: float):
     else:
         return location
     
-print(geocode_point(51.058305, 67.839402))
+print(geocode_point(50.638793, 5.563240))
