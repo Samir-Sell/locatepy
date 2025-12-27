@@ -1,3 +1,7 @@
-locatepy/data/data.db
-locatepy/data
 venv-dev
+venv
+dist
+scratch.py
+locatepy.egg-info
+*.pyc
+.vscode

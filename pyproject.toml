@@ -1,0 +1,30 @@
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "locatepy"
+version = "1.0.0"
+description = "Lightweight reverse geolocation"
+readme = "README.md"
+requires-python = ">=3.9.17"
+license = { text = "MIT" }
+authors = [{ name = "Samir Sellars" }]
+
+dependencies = [
+  "shapely"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "ruff"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["locatepy*"]
+
+[tool.setuptools.package-data]
+locatepy = ["data/*.db"]

@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS countries (
   name          TEXT NOT NULL
 );
 
--- States/Provinces
+-- States
 CREATE TABLE IF NOT EXISTS states (
   id            INTEGER PRIMARY KEY,
   code          TEXT,
