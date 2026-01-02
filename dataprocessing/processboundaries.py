@@ -3,12 +3,12 @@ import sqlite3
 from typing import Union
 from shapely.geometry import shape, Polygon, MultiPolygon
 from shapely.wkb import dumps as wkb_dumps
-from shapely import STRtree
+from shapely import STRtree, simplify
 from shapely.prepared import prep
 import zlib
 
 
-SQL_LITE_DATA_PATH = r".\locatepy\data\compressed.db"
+SQL_LITE_DATA_PATH = r".\locatepy\data\simplified.db"
 SCHEMA_SQL_LITE_DATA_PATH = r".\dataprocessing\schema.sql"
 COUNTRIES_GEOJSON_PATH = r"C:\Users\ssellars\Downloads\geoBoundariesCGAZ_ADM0.geojson"
 STATES_GEOJSON_PATH = r"C:\Users\ssellars\Downloads\geoBoundariesCGAZ_ADM1.geojson"
@@ -145,7 +145,7 @@ def ingest_municipalities(con, state_geojson_path: str, municipal_geojson_path:s
             cur.execute("""
                 INSERT INTO municipalities (state_id, country_id, code, name, geom_wkb)
                 VALUES (?, ?, ?, ?, ?)
-            """, (state_id, country_id, code, name, sqlite3.Binary(zlib.compress(wkb_dumps(geom)))))
+            """, (state_id, country_id, code, name, sqlite3.Binary(zlib.compress(wkb_dumps(simplify(geom, 0.001))))))
             muni_id = cur.lastrowid
 
             # Insert bbox into R-tree
