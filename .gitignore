@@ -6,3 +6,4 @@ locatepy.egg-info
 *.pyc
 .vscode
 build
+*.geojson
