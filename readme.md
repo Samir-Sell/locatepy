@@ -3,6 +3,8 @@
 **LocatePy** is a lightweight, fast reverse-geolocation utility for Python.  
 It maps latitude/longitude coordinates to administrative boundaries using a **prebuilt SQLite database** with **R-Tree spatial indexing** and **compressed WKB geometries** for exact geometry verification.
 
+[PyPi](https://pypi.org/project/locatepy/)
+
 This project is designed to be:
 
 - **Fast** — minimal dependencies, only Shapely
@@ -96,6 +98,9 @@ This approach avoids expensive full-table scans and keeps memory usage low.
   - Multi-match results
   - Assumes WGS84
 
+## Future Improvements
+
+- Add a seperate database for Canadian Address level Geocoding from Statistics Canada open data
 
 ## License
 
