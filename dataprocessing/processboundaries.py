@@ -107,7 +107,6 @@ def ingest_municipalities(con, state_geojson_path: str, municipal_geojson_path:s
             best_idx = None
             best_ratio = -1.0
 
-            # Prefer covers (boundary-inclusive), then intersects, by max intersection ratio
             for idx in cand_idxs:
                 pg = state_prepared[idx]
                 sg = state_polygons_list[idx]
@@ -127,12 +126,10 @@ def ingest_municipalities(con, state_geojson_path: str, municipal_geojson_path:s
             found_state_geo = state_polygons_list[best_idx]
 
 
-            # Map properties (tweak these to your dataset)
             name = props.get("shapeName")
             code = props.get("shapeId")
             country_code = props.get("shapeGroup")
 
-            # Parent lookups (attribute-based)
             state_id = lookup_table[found_state_geo] 
             country_id = lookup_country_id_by_code(con, country_code)
 
