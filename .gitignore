@@ -5,3 +5,4 @@ scratch.py
 locatepy.egg-info
 *.pyc
 .vscode
+build
