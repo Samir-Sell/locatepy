@@ -8,11 +8,11 @@ from shapely.prepared import prep
 import zlib
 
 
-SQL_LITE_DATA_PATH = r".\locatepy\data\simplified.db"
-SCHEMA_SQL_LITE_DATA_PATH = r".\dataprocessing\schema.sql"
-COUNTRIES_GEOJSON_PATH = r"C:\Users\ssellars\Downloads\geoBoundariesCGAZ_ADM0.geojson"
-STATES_GEOJSON_PATH = r"C:\Users\ssellars\Downloads\geoBoundariesCGAZ_ADM1.geojson"
-MUNICIPAL_GEOJSON_PATH = r"C:\Users\ssellars\Downloads\geoBoundariesCGAZ_ADM2.geojson"
+SQL_LITE_DATA_PATH = r".\locatepy\data\world-admin-bounds.db"
+SCHEMA_SQL_LITE_DATA_PATH = r"schema.sql"
+COUNTRIES_GEOJSON_PATH = r"geoBoundariesCGAZ_ADM0.geojson"
+STATES_GEOJSON_PATH = r"geoBoundariesCGAZ_ADM1.geojson"
+MUNICIPAL_GEOJSON_PATH = r"geoBoundariesCGAZ_ADM2.geojson"
 
 
 def connect_to_sql_lite_db(db_path: str = SQL_LITE_DATA_PATH):
@@ -41,7 +41,6 @@ def ingest_countries(con: sqlite3.Connection, geojson_path: str):
         name = props.get("shapeName")
         code = props.get("shapeGroup")
 
-        # Insert into countries table
         cur.execute("""
             INSERT INTO countries (name, code)
             VALUES (?, ?)
@@ -60,7 +59,6 @@ def ingest_states(con: sqlite3.Connection, geojson_path: str):
         name = props.get("shapeName")
         code = props.get("shapeID")
 
-        # Insert into states
         cur.execute("""
             INSERT INTO states (code, name)
             VALUES (?, ?)
@@ -104,7 +102,7 @@ def ingest_municipalities(con, state_geojson_path: str, municipal_geojson_path:s
 
             
             # Get candidate state indices that overlap the muni bbox/geom
-            cand_idxs = list(tree.query(geom))  # Shapely 2.x returns indices
+            cand_idxs = list(tree.query(geom))
 
             best_idx = None
             best_ratio = -1.0
@@ -123,7 +121,7 @@ def ingest_municipalities(con, state_geojson_path: str, municipal_geojson_path:s
 
             # Final fallback: only if no candidate overlaps, pick nearest
             if best_idx is None:
-                nearest_idx = tree.nearest(geom)  # Shapely 2.x returns an index
+                nearest_idx = tree.nearest(geom)
                 best_idx = nearest_idx
 
             found_state_geo = state_polygons_list[best_idx]
