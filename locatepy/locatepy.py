@@ -16,6 +16,7 @@ Features:
 
 import sqlite3
 import os
+from pathlib import Path
 from zlib import decompress
 from dataclasses import dataclass
 from shapely.geometry import Point
@@ -30,7 +31,10 @@ class LocateResult:
 
 class LocatePy:
     """Perform reverse geolocation queries to return admin boundaries"""
-    def __init__(self, world_admin_bounds_db: str = r"locatepy\data\world-admin-bounds.db"):
+    def __init__(self):
+        module_path = Path(__file__).resolve()
+        module_dir = module_path.parent
+        world_admin_bounds_db = module_dir / "data" / "world-admin-bounds.db"
         if os.path.exists(world_admin_bounds_db) is False:
             raise FileNotFoundError("World Admin Database Missing")
         self._world_con = sqlite3.connect(world_admin_bounds_db)
