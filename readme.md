@@ -23,7 +23,7 @@ This project is designed to be:
 ### Basic Example
 
 ```python
-from locatepy import LocatePy
+from locatepy.locatepy import LocatePy
 
 locator = LocatePy()
 result = locator.locate(lat=43.6532, lon=-79.3832)
